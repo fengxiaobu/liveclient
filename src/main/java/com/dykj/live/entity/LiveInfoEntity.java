@@ -3,70 +3,169 @@
  */
 package com.dykj.live.entity;
 
+import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
- * 发布视频信息
- *
- * @author eguid
- * @version 2016年6月30日
- * @see LiveInfoEntity
- * @since jdk1.7
+ * @author sjy
+ * <p>
+ * 直播储存对象
  */
+@Entity
+@Table(name = "LiveInfoEntity")
 public class LiveInfoEntity implements Serializable {
     private static final long serialVersionUID = -2657813061488195041L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long pushId;
     /**
      * 应用名
      */
+    @Column
     private String appName;
     /**
-     * 视频源地址，可以是实时流地址也可以是文件路径
+     * 视频源地址，可以是实时流地址也可以是文件路径 Rtsp地址
      */
+    @Column
     private String input;
+
     /**
      * 实时流输出地址，这个默认是固定的rtmp服务器发布地址
+     * 推流地址CDN
      */
+    @Column
     private String output;
+
     /**
      * 视频格式，默认flv
      */
-    private String fmt;
+    @Column
+    private String fmt = "flv";
     /**
      * 帧率，最好是25-60
      */
-    private String fps;
+    @Column
+    private String fps = "25";
     /**
      * 分辨率，例如：640x360
      */
-    private String rs;
-    /**
-     * 是否关闭音频
-     */
-    private String disableAudio;
-    private String twoPart = "0";
-    //传输协议   TCP/UDP
-    private String transport = "TCP";
-    //接入协议 ONVIF/RSTP
-    private String protocol;
-    private String ip;
-    private String username;
-    private String password;
+    @Column
+    private String rs = "1920x10800";
 
-    public LiveInfoEntity() {
-        super();
+    @Column
+    private String twoPart = "0";
+
+    /**
+     * CDN直播ID
+     */
+    @Column
+    private String cdnid;
+
+    /**
+     * 传输协议 TCP/UDP
+     */
+    @Column
+    private String transport;
+    /**
+     * 接入协议 ONVIF/RSTP
+     */
+    @Column
+    private String protocol;
+    /**
+     * 摄像头IP
+     */
+    @Column
+    private String ip;
+    /**
+     * 摄像头用户名
+     */
+    @Column
+    private String username;
+    /**
+     * 摄像头密码
+     */
+    @Column
+    private String password;
+    /**
+     * 是否开启
+     */
+    @Column
+    private Boolean open;
+    /**
+     * 是否在线
+     */
+    @Column
+    private Boolean online = true;
+ /*   *//**
+     * 执行命令
+     *//*
+    @Lob
+    @Column(columnDefinition = "mediumtext")
+    private String comm;*/
+    /**
+     * 更新时间
+     */
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date update_time = new Date();
+    /**
+     * 创建时间
+     */
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date create_time = new Date();
+
+    public Boolean getOnline() {
+        return online;
     }
 
-    public LiveInfoEntity(String appName, String twoPart, String input, String output, String fmt, String fps, String rs,
-                          String disableAudio) {
-        super();
-        this.appName = appName;
-        this.twoPart = twoPart;
-        this.input = input;
-        this.output = output;
-        this.fmt = fmt;
-        this.fps = fps;
-        this.rs = rs;
-        this.disableAudio = disableAudio;
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
+
+    public Long getPushId() {
+        return pushId;
+    }
+
+    public void setPushId(Long pushId) {
+        this.pushId = pushId;
+    }
+
+    public String getCdnid() {
+        return cdnid;
+    }
+
+    public void setCdnid(String cdnid) {
+        this.cdnid = cdnid;
+    }
+
+    public Date getUpdate_time() {
+        return update_time;
+    }
+
+    public void setUpdate_time(Date update_time) {
+        this.update_time = update_time;
+    }
+
+    public Date getCreate_time() {
+        return create_time;
+    }
+
+    public void setCreate_time(Date create_time) {
+        this.create_time = create_time;
+    }
+
+    public Boolean getOpen() {
+        return open;
+    }
+
+    public void setOpen(Boolean open) {
+        this.open = open;
     }
 
     public String getIp() {
@@ -201,29 +300,10 @@ public class LiveInfoEntity implements Serializable {
         this.rs = rs;
     }
 
-    /**
-     * @return the disableAudio
-     */
-    public String getDisableAudio() {
-        return disableAudio;
-    }
 
-    /**
-     * @param disableAudio the disableAudio to set
-     */
-    public void setDisableAudio(String disableAudio) {
-        this.disableAudio = disableAudio;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "LiveInfoEntity [appName=" + appName + ", input=" + input + ", output=" + output + ", fmt=" + fmt
-                + ", fps=" + fps + ", rs=" + rs + ", disableAudio=" + disableAudio + "]";
+        return JSONUtil.toJsonStr(this);
     }
 
 }

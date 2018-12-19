@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>实时监控视频应用管理系统</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-table.css" rel="stylesheet">
+    <link href="player/video-js.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <link href="css/index.css" rel="stylesheet">
+    <script src="bootstrap/js/bootstrap.js"></script>
+    <script src="bootstrap/js/bootstrap-table.js"></script>
+    <script src="bootstrap/js/bootstrap-table-zh-CN.js"></script>
+    <script src="bootstrap/js/bootbox.js"></script>
+    <script src="player/video.min.js"></script>
+    <script src="player/videojs-ie8.min.js"></script>
+    <script type="text/javascript">videojs.options.flash.swf = "player/video-js.swf";</script>
+    <script src="js/videojsAPI.js"></script>
+
+</head>
+<style>
+    #editForm .input-group {
+        margin-top: 15px;
+    }
+
+    #addForm .input-group {
+        margin-top: 15px;
+    }
+
+    .table th, .table td {
+        text-align: center;
+        vertical-align: middle !important;
+    }
+
+    .table .role {
+        margin: 5px;
+    }
+
+    #playModal {
+        text-align: center;
+        vertical-align: middle !important;
+        padding-top: 50px;
+    }
+
+</style>
+<body>
+<h2>大益科技实时监控视频应用发布管理系统</h2>
+<div>
+    <div class="table-responsive">
+        <table class="table table-striped" id="ArbetTable"
+               data-classes="table table-hover "
+               data-search="true"
+               data-show-refresh="true"
+               data-show-toggle="true"
+               data-show-columns="true"
+               data-toolbar="#toolbar"></table>
+        <div id="toolbar">
+            <div class="btn-group">
+                <button class="btn btn-info">
+                    <i class="RoleOfadd glyphicon glyphicon-plus" onclick="roleOfadd()">新增</i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 播放的模态对话框 -->
+    <div id="playModal" class="modal fade" role="dialog" aria-hidden=true>
+        <div class="modal-dialog modal-lg" style="text-align:center;width: 900px;height: 650px;">
+            <div class="modal-content" style="text-align:center;width: 900px;height: 650px;">
+                <div class="modal-header bg-primary" style="text-align:center;">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">
+                        <i class="icon-pencil"></i>
+                        <input type="hidden" id="cdnid"/>
+                        <span id="lblPlayTitle" style="font-weight:bold">播放</span>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div id="videos" class="videos" style="height: 100%;width: 100%; margin: 0px">
+                        <video
+                                id="videoPlayer"
+                                class="video-js vjs-styles-defaults  vjs-big-play-centered"
+                                controls
+                                preload="auto"
+                                width="870px"
+                                height="550px"
+                                poster="//vjs.zencdn.net/v/oceans.png"
+                                data-setup='{}'>
+                            <p class="vjs-no-js">
+                                To view this video please enable JavaScript, and consider upgrading to a
+                                web browser that
+                                <a href="http://videojs.com/html5-video-support/" target="_blank">
+                                    supports HTML5 video
+                                </a>
+                            </p>
+                        </video>
+                    </div>
+                </div>
+                <div id="ptzMove" style="display:none" class="modal-body">
+                    '&nbsp;<button class="ptz ptz_up btn btn-success btn-sm">上</button>&nbsp;',
+                    '&nbsp;<button class="ptz ptz_down btn btn-info btn-sm">下</button>&nbsp;',
+                    '&nbsp;<button class="ptz ptz_left btn btn-warning btn-sm">左</button>&nbsp;',
+                    '&nbsp;<button class="ptz ptz_right  btn btn-danger btn-sm">右</button>&nbsp;',
+                    '&nbsp;<button class="ptz ptz_zoomin  btn btn-danger btn-sm">放大</button>&nbsp;',
+                    '&nbsp;<button class="ptz ptz_zoomout  btn btn-danger btn-sm">缩小</button>&nbsp;',
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增的模态对话框 -->
+    <div id="addModal" class="modal fade" role="dialog" aria-hidden=true>
+        <div class="modal-dialog modal-lg" style="text-align:center;">
+            <div class="modal-content" style="text-align:center;width: 60%;">
+                <div class="modal-header bg-primary" style="text-align:center;">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">
+                        <i class="icon-pencil"></i>
+                        <span id="lblAddTitle" style="font-weight:bold">编辑</span>
+                    </h4>
+                </div>
+                <div class="modal-body" style="text-align:center;width: 99%;">
+                    <form id='addForm' class="bs-example bs-example-form" role="form">
+                        <div class="input-group" style="text-align:center;">
+                            <span class="input-group-addon text-center"><i class="icon-th">应用名</i></span>
+                            <input type="text" class=" form-control" name="appName"
+                                   id="ad_appName" placeholder="应用名">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="icon-th">视频源</i></span>
+                            <input type="text" class="form-control" placeholder="视频源" name="input"
+                                   id="ad_input">
+                        </div>
+
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">CDN地址</i></span>
+                            <input type="text" class="form-control" name="output"
+                                   id="ad_output" placeholder="CDN地址">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">IP</i></span>
+                            <input type="text" class=" form-control" name="ip"
+                                   id="ad_ip" placeholder="IP">
+
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">用户名 </i></span>
+                            <input type="text" class=" form-control" name="username" id="ad_username" placeholder="用户名">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">密  码</i></span>
+                            <input type="text" class=" form-control" name="password" id="ad_password" placeholder="密码">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">接入协议</i></span>
+                            <select class=" form-control" name="protocol" id="ad_protocol">
+                                <option value="RTSP">RTSP</option>
+                                <option value="ONVIF">ONVIF</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">传输协议</i></span>
+                            <select class=" form-control" name="transport" id="ad_transport">
+                                <option value="TCP">TCP</option>
+                                <option value="UDP">UDP</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">是否开启</i></span>
+                            <select class=" form-control" name="open" id="ad_isOpen">
+                                <option value="true">开启</option>
+                                <option value="false">关闭</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-info">
+                    <button type="button" class="btn btn-primary" onclick=probedevice()>探测</button>
+                    <button type="submit" class="btn btn-primary" onclick=pushAppAdd()>确定</button>
+                    <button type="button" class="btn green" data-dismiss="modal">取消</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- 编辑的模态对话框 -->
+    <div id="editModal" class="modal fade" role="dialog" aria-hidden=true>
+        <div class="modal-dialog modal-lg" style="text-align:center;">
+            <div class="modal-content" style="text-align:center;width: 60%;">
+                <div class="modal-header bg-primary" style="text-align:center;">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">
+                        <i class="icon-pencil"></i>
+                        <span id="lblEditTitle" style="font-weight:bold">编辑</span>
+                    </h4>
+                </div>
+                <div class="modal-body" style="text-align:center;width: 99%;">
+                    <form id='editForm' class="bs-example bs-example-form" role="form">
+                        <input type="hidden" class=" form-control" name="pushId" id="ed_pushId">
+                        <div class="input-group" style="text-align:center;">
+                            <span class="input-group-addon text-center"><i class="icon-th">应用名</i></span>
+                            <input type="text" class=" form-control" name="appName"
+                                   id="ed_appName" placeholder="应用名">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="icon-th">视频源</i></span>
+                            <input type="text" class="form-control" placeholder="视频源" name="input"
+                                   id="ed_input">
+                        </div>
+
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">CDN地址</i></span>
+                            <input type="text" class=" form-control" name="output"
+                                   id="ed_output" placeholder="CDN地址">
+                        </div>
+                        <div class="input-group">
+
+                            <span class="input-group-addon text-center"><i class="icon-th">IP</i></span>
+                            <input type="text" class=" form-control" name="ip"
+                                   id="ed_ip" placeholder="IP">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">用户名 </i></span>
+                            <input type="text" class=" form-control" name="username" id="ed_username" placeholder="用户名">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">密  码</i></span>
+                            <input type="text" class=" form-control" name="password" id="ed_password" placeholder="密码">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">接入协议</i></span>
+                            <select class=" form-control" name="protocol" id="ed_protocol">
+                                <option value="RTSP">RTSP</option>
+                                <option value="ONVIF">ONVIF</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">传输协议</i></span>
+                            <select class=" form-control" name="transport" id="ed_transport">
+                                <option value="TCP">TCP</option>
+                                <option value="UDP">UDP</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon text-center"><i class="icon-th">是否开启</i></span>
+                            <select class=" form-control" name="open" id="ed_isOpen">
+                                <option value=true>开启</option>
+                                <option value=false>关闭</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-info">
+                    <button type="submit" class="btn btn-primary" onclick=pushAppEdit()>确定</button>
+                    <button type="button" class="btn green" data-dismiss="modal">取消</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div style="padding:5px ;position:relative" class="col-sm-4">
+
+</div>
+
+<!--<script src="js/play.js"></script>-->
+<script src="js/liveService.js"></script>
+<script>
+    $(function () {
+        //1.初始化Table
+        var oTable = new TableInit();
+        oTable.Init();
+        $(".ptz").mouseup(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "stop");
+        });
+
+        $(".ptz_up").mousedown(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "up");
+        });
+        $(".ptz_down").mousedown(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "down");
+        });
+        $(".ptz_left").mousedown(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "left");
+        });
+        $(".ptz_right").mousedown(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "right");
+        });
+        $(".ptz_zoomin").mousedown(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "zoomin");
+        });
+        $(".ptz_zoomout").mousedown(function () {
+            var cdnid = $("#cdnid").val();
+            ptzCimmand(cdnid, "zoomout");
+        });
+
+    });
+
+    var TableInit = function () {
+        var oTableInit = {};
+        //初始化Table
+        oTableInit.Init = function () {
+            $('#ArbetTable').bootstrapTable({
+                url: '/live/viewAll',         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                toolbar: '#toolbar',                //工具按钮用哪个容器
+                striped: true,                      //是否显示行间隔色
+                cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                paginationPreText: '上一页',
+                paginationNextText: '下一页',
+                sortable: false,                     //是否启用排序
+                sortOrder: "asc",                   //排序方式
+                queryParams: oTableInit.queryParams,//传递参数（*）
+                sidePagination: "client",           //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber: 1,                       //初始化加载第一页，默认第一页
+                pageSize: 10,                       //每页的记录行数（*）
+                pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                search: true,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                contentType: "application/x-www-form-urlencoded",
+                strictSearch: true,
+                showColumns: true,                  //是否显示所有的列
+                showRefresh: true,                  //是否显示刷新按钮
+                minimumCountColumns: 2,             //最少允许的列数
+                clickToSelect: true,                //是否启用点击选中行
+                height: 777,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "no",                     //每一行的唯一标识，一般为主键列
+                showToggle: true,                    //是否显示详细视图和列表视图的切换按钮
+                cardView: false,                    //是否显示详细视图
+                detailView: false,                   //是否显示父子表
+                columns: [
+                    /* {
+                         field: 'id',
+                         align: 'center',
+                         title: 'ID'
+                     },*/ {
+                        field: 'cdnid',
+                        align: 'center',
+                        title: 'CDNID'
+                    }, {
+                        field: 'appName',
+                        align: 'center',
+                        title: '应用名'
+                    }, {
+                        field: 'open',
+                        align: 'center',
+                        title: '是否开启',
+                        formatter: openFormatter
+                    }, {
+                        field: 'online',
+                        align: 'center',
+                        title: '是否在线',
+                        formatter: onlineFormatter
+                    }, {
+                        field: 'input',
+                        align: 'center',
+                        title: '视频源'
+                    }, {
+                        field: 'output',
+                        align: 'center',
+                        title: 'CDN地址'
+                    }, {
+                        field: 'ip',
+                        align: 'center',
+                        title: 'IP'
+                    }, {
+                        field: 'username',
+                        align: 'center',
+                        title: '用户名'
+                    }, {
+                        field: 'password',
+                        align: 'center',
+                        title: '密码'
+                    }, {
+                        field: 'transport',
+                        align: 'center',
+                        title: '传输协议'
+                    }, {
+                        field: 'protocol',
+                        align: 'center',
+                        title: '接入协议'
+                    }, {
+                        field: 'operate',
+                        align: 'center',
+                        title: '操作',
+                        events: operateEvents,
+                        formatter: operateFormatter //自定义方法，添加操作按钮
+                    }
+                ],
+                rowStyle: function (row, index) {
+                    var classesArr = ['active', 'info'];
+                    var strclass = "";
+                    if (index % 2 === 0) {//偶数行
+                        strclass = classesArr[0];
+                    } else {//奇数行
+                        strclass = classesArr[1];
+                    }
+                    return {classes: strclass};
+                },//隔行变色
+            });
+
+        };
+
+
+        //得到查询的参数
+        oTableInit.queryParams = function (params) {
+            var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                limit: params.limit,   //页面大小
+                offset: params.offset
+            };
+            return temp;
+        };
+        return oTableInit;
+    };
+
+
+    function operateFormatter(value, row, index) {//赋予的参数
+        return [
+            '&nbsp;<a class="role RoleOfPlay btn btn-success btn-sm" href="#">播放</a>&nbsp;',
+            '&nbsp;<a class="role RoleOfEdit btn btn-info btn-sm" href="#">编辑</a>&nbsp;',
+            '&nbsp;<a class="role RoleOfStop btn btn-warning btn-sm" href="#">开/关</a>&nbsp;',
+            '&nbsp;<a class="role RoleOfDelete  btn btn-danger btn-sm" href="#">移除</a>&nbsp;',
+        ].join('');
+    }
+
+    function openFormatter(value, row, index) {//赋予的参数
+        if (value) {
+            return '<span class="label label-success">开启</span>';
+        } else {
+            return '<span class="label label-default">关闭</span>';
+        }
+    }
+
+    function onlineFormatter(value, row, index) {//赋予的参数
+        if (value) {
+            return '<span class="label label-success">在线</span>';
+        } else {
+            return '<span class="label label-default">离线</span>';
+        }
+    }
+
+    function _objToStrMap(obj) {
+        var strMap = new Map();
+        for (var k of Object.keys(obj)) {
+            strMap.set(k, obj[k]);
+        }
+        return strMap;
+    }
+
+    /**
+     *json转换为map
+     */
+    function _jsonToMap(jsonStr) {
+        return this._objToStrMap(JSON.parse(jsonStr));
+    }
+
+    var player;
+    window.operateEvents = {
+        'click .RoleOfDelete': function (e, value, row, index) {
+            closeApp(_objToStrMap(row).get("pushId"));
+        }, 'click .RoleOfStop': function (e, value, row, index) {
+            stopApp(_objToStrMap(row).get("pushId"))
+        },
+        'click .RoleOfEdit': function (e, value, row, index) {
+            var map = _objToStrMap(row);
+            var appName = map.get("appName");
+            var input = map.get("input");
+            var output = map.get("output");
+            var ip = map.get("ip");
+            var pushId = map.get("pushId");
+            var username = map.get("username");
+            var password = map.get("password");
+            var transport = map.get("transport");
+            var protocol = map.get("protocol");
+            var isOpen = "" + map.get("open");
+            console.log(isOpen);
+            $("#ed_appName").val(appName);
+            $("#ed_pushId").val(pushId);
+            $("#ed_input").val(input);
+            $("#ed_output").val(output);
+            $("#ed_ip").val(ip);
+            $("#ed_username").val(username);
+            $("#ed_password").val(password);
+            $("#ed_transport").val(transport);
+            $("#ed_protocol").val(protocol);
+            $("#ed_isOpen").val(isOpen);
+            $("#editModal").modal('show');
+
+        },
+        'click .RoleOfPlay': function (e, value, row, index) {
+            var map = _objToStrMap(row);
+            var output = map.get("output");
+            var appName = map.get("appName");
+            var cdnid = map.get("cdnid");
+            var protocol = map.get("protocol");
+            if (protocol == "ONVIF") {
+                $("#ptzMove").show();
+            }
+            $("#lblPlayTitle").html(appName);
+            $("#cdnid").prop("value", cdnid);
+            //播放器实例
+            player = videojs('videoPlayer');
+            //bootbox.alert(JSON.stringify(player));
+            //加载页面进行播放器初始化
+            player.ready(function () {
+                //playerInitVideo();
+                setsrc(player, output, "rtmp/flv");
+                player.play();
+            });
+            $("#playModal").modal('show');
+        }
+    };
+
+
+    function roleOfadd() {
+        $("#addModal").modal('show');
+    }
+
+    function resetAll(id) {
+        $("#" + id).find('input[type=text],input[type=hidden]').each(function () {
+            $(this).val('');
+        });
+    }
+
+    $(function () {
+        $('#editModal').on('hidden.bs.modal', function () {
+            resetAll("editModal");
+            $('#ArbetTable').bootstrapTable('refresh');
+        });
+        $('#addModal').on('hidden.bs.modal', function () {
+            resetAll("addModal");
+            $('#ArbetTable').bootstrapTable('refresh');
+        });
+        $('#playModal').on('hidden.bs.modal', function () {
+            $("#ptzMove").hide();
+            reset(player);
+        });
+    });
+</script>
+
+</body>
+</html>

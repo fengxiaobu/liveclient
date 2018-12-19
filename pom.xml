@@ -6,7 +6,7 @@
     <groupId>com.dykj.live</groupId>
     <artifactId>liveclient</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <name>LiveClient</name>
     <description>Demo project for Spring Boot</description>
@@ -32,6 +32,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- thymeleaf 模版 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
         <!--JPA-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -43,33 +48,6 @@
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <!--Servlet-->
-        <!--
-        <dependency>
-               <groupId>javax.servlet</groupId>
-               <artifactId>javax.servlet-api</artifactId>
-               <scope>provided</scope>
-           </dependency>
-          -->
-        <!--Tomcat-->
-        <!--
-        <dependency>
-             <groupId>org.springframework.boot</groupId>
-             <artifactId>spring-boot-starter-tomcat</artifactId>
-             <exclusions>
-                 <exclusion>
-                     <groupId>org.springframework.boot</groupId>
-                     <artifactId>spring-boot-starter-tomcat</artifactId>
-                 </exclusion>
-             </exclusions>
-         </dependency>
-         -->
-        <!--Guava工具-->
-        <!--<dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.0</version>
-        </dependency>-->
         <!--工具类-->
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -88,6 +66,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+      <!--  &lt;!&ndash;推流器&ndash;&gt;
+        <dependency>
+            <groupId>cc.eguid.cv.corelib</groupId>
+            <artifactId>videoRecorder</artifactId>
+            <version>2018.10.18</version>
+        </dependency>-->
     </dependencies>
 
     <build>

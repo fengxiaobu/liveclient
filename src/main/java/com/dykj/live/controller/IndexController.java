@@ -27,4 +27,19 @@ public class IndexController {
             return sb.append("客户端启动成功-----------></br>").append(DateUtil.now()).toString();
         }
     }
+
+    @RequestMapping("/play")
+    public String pay() {
+        return "play";
+    }
+
+    @RequestMapping("/ckplayer")
+    public String ckplayer() {
+        return "ckplayer";
+    }
+
+    @RequestMapping("/editplayer")
+    public String editplayer() {
+        return "editplayer";
+    }
 }

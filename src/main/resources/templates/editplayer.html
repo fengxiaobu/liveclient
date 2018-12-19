@@ -103,13 +103,13 @@
 </head>
 <body>
 <div id="mp4">
-<video src="http://192.168.30.21/test1HD.video.mp4" autoplay="autoplay" height="360" width="640" title="视频" controls="controls"></video>
+<video src="//vjs.zencdn.net/v/oceans.mp4" autoplay="autoplay" height="360" width="640" title="视频" controls="controls"></video>
 </div>
 	<div id="videos">
 		<!-- data-setup{}可以控制播放器的一些功能；autoplay:true/false，是否自动播放；preload：auto\none\meta，自动加载\不加载\加载元数据 -->
 		<video id="player4" class="video-js vjs-default-skin vjs-big-play-centered"
 			   poster="img/eguidlogo.png" width="640" height="360" data-setup='{}'>
-			 <source src="http://192.168.30.21/test1.video.mp4" type="video/mp4">
+			<source src="//vjs.zencdn.net/v/oceans.mp4" type="video/mp4"></source>
 		</video>
 	</div>
 	<input type="button" value="获取播放地址" onclick="getAddr();">
@@ -125,11 +125,11 @@
 						+ '<li class="vjs-menu-item vjs-selected" tabindex="-1" role="menuitemcheckbox"  onclick="changeUrl(this)">标清 </li>'
 						+ '</ul></div><span class="vjs-control-text">清晰度</span></div>');}
 	var player = videojs('player4');
-	//play(p4);
+	 play(p4);
 	player.ready(function() {
 	
 		playerInitVideo();
-		//player.play();
+		 player.play();
 		//setsrc(player,"rtmp://192.168.30.21/live/test3","rtmp/flv");
 	});
 </script>

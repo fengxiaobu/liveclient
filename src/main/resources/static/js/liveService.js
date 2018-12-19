@@ -4,6 +4,7 @@
  */
 
 //封装JsonAjax方法(请求类型，url，参数，成功方法)
+
 function JsonAjax(urltype, urlLink, paramData, sucessMethod) {
     $.ajax({
         type: urltype,
@@ -14,7 +15,19 @@ function JsonAjax(urltype, urlLink, paramData, sucessMethod) {
             sucessMethod(data);
         },
         error: function () {
-            alert("服务器未开启或页面错误，请联系管理员");
+            bootbox.alert("服务器未开启或页面错误，请联系管理员");
+        }
+    });
+}
+
+function JsonAjaxVoid(urltype, urlLink, paramData) {
+    $.ajax({
+        type: urltype,
+        url: urlLink,
+        data: paramData,
+        dataType: "json",
+        error: function () {
+            bootbox.alert("服务器未开启或页面错误，请联系管理员");
         }
     });
 }
@@ -33,7 +46,7 @@ function EchoJsonAjax(urltype, urlLink, paramData, sucessMethod, async, index) {
             sucessMethod(data, index);
         },
         error: function () {
-            alert("服务器未开启或页面错误，请联系管理员");
+            bootbox.alert("服务器未开启或页面错误，请联系管理员");
         }
     });
 }
@@ -44,37 +57,96 @@ function EchoJsonAjax(urltype, urlLink, paramData, sucessMethod, async, index) {
 /**
  * 发布一个应用方法
  */
-function pushApp(newMethod) {
+function pushAppAdd(newMethod) {
     //自定义成功方法
-    var appName = $("#p-appName").val();
-    var input = $("#p-input").val();
-    var output = $("#p-output").val();
-    var fmt = $("#p-fmt").val();
-    var fps = $("#p-fps").val();
-    var rs = $("#p-rs").val();
-    var disableAudio = $("#p-disableAudio").val();
-    var ip = $("#p-ip").val();
-    var username = $("#p-username").val();
-    var password = $("#p-password").val();
-    var protoco = $("#p-protocol").val();
-    var transport = $("#p-transport").val();
+    var appName = $("#ad_appName").val();
+    var input = $("#ad_input").val();
+    var output = $("#ad_output").val();
+    var ip = $("#ad_ip").val();
+    var username = $("#ad_username").val();
+    var password = $("#ad_password").val();
+    var protoco = $("#ad_protocol").val();
+    var transport = $("#ad_transport").val();
     if (isNull(appName) || isNull(input) || isNull(output)) {
-        alert("发布失败，必须填写全部参数！");
+        bootbox.alert("发布失败，必须填写全部参数！");
         return;
     }
-    var param = $("#appForm").serializeArray();
-    if (window.confirm("确定发布名称为：’" + appName + " ‘的实时应用？（提示：发布后该实时流（在不关闭的情况下）会一直保持推送状态）")) {
-        if (newMethod) {
-            JsonAjax("POST", "live/push/" + appName, param, newMethod);
-        } else {
-            JsonAjax("POST", "live/push/" + appName, param, sucessPushApp);
+    var param = $("#addForm").serializeArray();
+    console.log(param);
+    bootbox.confirm({
+        size: "small",
+        message: "确定发布名称为：’" + appName + " ‘的实时应用？（提示：发布后该实时流（在不关闭的情况下）会一直保持推送状态）",
+        callback: function (result) {
+            if (result) {
+                if (newMethod) {
+                    JsonAjax("POST", "live/push", param, newMethod);
+                } else {
+                    JsonAjax("POST", "live/push", param, sucessPushApp);
+                }
+            }
         }
+    })
+}
+
+/**
+ * 探测
+ */
+function probedevice() {
+    //自定义成功方法
+    var ip = $("#ad_ip").val();
+    var username = $("#ad_username").val();
+    var password = $("#ad_password").val();
+
+    if (isNull(ip) || isNull(username) || isNull(password)) {
+        JsonAjax("POST", "ptz/probedevice", {ip: ip, username: username, password: password}, sucessIpProbedevice);
+    } else {
+        JsonAjax("POST", "ptz/probedevice", {ip: ip, username: username, password: password}, sucessProbedevice);
     }
+
+}
+
+/**
+ * 云台控制
+ */
+function ptzCimmand(cdnid, command) {
+    JsonAjaxVoid("POST", "ptz/command", {id: cdnid, command: command, speed: 5});
+}
+
+function pushAppEdit(newMethod) {
+    //自定义成功方法
+    var appName = $("#ed_appName").val();
+    var input = $("#ed_input").val();
+    var output = $("#ed_output").val();
+    var id = $("#ed_id").val();
+    var ip = $("#ed_ip").val();
+    var username = $("#ed_username").val();
+    var password = $("#ed_password").val();
+    var protoco = $("#ed_protocol").val();
+    var transport = $("#ed_transport").val();
+    if (isNull(appName) || isNull(input) || isNull(output)) {
+        bootbox.alert("发布失败，必须填写全部参数！");
+        return;
+    }
+    var param = $("#editForm").serializeArray();
+    console.log(param);
+    bootbox.confirm({
+        size: "small",
+        message: "确定发布名称为：’" + appName + " ‘的实时应用？（提示：发布后该实时流（在不关闭的情况下）会一直保持推送状态）",
+        callback: function (result) {
+            if (result) {
+                if (newMethod) {
+                    JsonAjax("POST", "live/push", param, newMethod);
+                } else {
+                    JsonAjax("POST", "live/push", param, sucessPushApp);
+                }
+            }
+        }
+    })
 }
 
 //是否为空
 function isNull(element) {
-    return element == null || new String(element).trim() == "";
+    return element == null || String(element).trim() == "";
 }
 
 /**
@@ -88,9 +160,36 @@ function sucessPushApp(resultData) {
             viewAll();
         }
         //不管是否发布成功都要显示结果信息
-        alert(resultData.msg);
+        bootbox.alert(resultData.msg);
     } else {
-        alert("服务器抽风了，请稍后再试！");
+        bootbox.alert("服务器抽风了，请稍后再试！");
+    }
+}
+
+function sucessProbedevice(resultData) {
+    if (resultData) {
+        //不管是否发布成功都要显示结果信息
+        bootbox.alert(resultData.msg);
+        if (resultData.code == 200) {
+            //显示列表
+            $("#ad_input").prop("value", resultData.result.rtspStreamUri);
+        }
+    } else {
+        bootbox.alert("服务器抽风了，请稍后再试！");
+    }
+}
+
+function sucessIpProbedevice(resultData) {
+    if (resultData) {
+        if (resultData.code == 200) {
+            //显示列表
+            bootbox.alert("发现设备  " + JSON.parse(resultData.result.ips))
+        } else {
+            //不管是否发布成功都要显示结果信息
+            bootbox.alert(resultData.msg);
+        }
+    } else {
+        bootbox.alert("服务器抽风了，请稍后再试！");
     }
 }
 
@@ -101,11 +200,29 @@ function sucessPushApp(resultData) {
  * 通过应用名关闭应用
  * @param element
  */
-function closeApp(element) {
-    var appName = $(element).parent().parent().data("appName");
-    if (window.confirm("停止这个实时应用？（提示：实时应用无法暂停，停止即删除）")) {
-        EchoJsonAjax("DELETE", "live/close/" + appName, "", sucessCloseApp, true, element);
-    }
+function closeApp(pushId) {
+    console.log(pushId);
+    bootbox.confirm({
+        size: "small",
+        message: "移除这个实时应用？（提示：实时应用无法暂停，停止即删除）",
+        callback: function (result) {
+            if (result) {
+                JsonAjax("DELETE", "live/close/" + pushId, "", sucessCloseApp);
+            }
+        }
+    })
+}
+
+function stopApp(pushId) {
+    bootbox.confirm({
+        size: "small",
+        message: "停止这个实时应用？（提示：实时应用无法暂停，停止即删除）",
+        callback: function (result) {
+            if (result) {
+                JsonAjax("DELETE", "live/stop/" + pushId, "", sucessCloseApp);
+            }
+        }
+    })
 }
 
 /**
@@ -119,9 +236,9 @@ function sucessCloseApp(resultData, index) {
             //删除应用后刷新列表
             viewAll();
         }
-        alert(resultData.msg);
+        bootbox.alert(resultData.msg);
     } else {
-        alert("服务器抽风了 - -!");
+        bootbox.alert("服务器抽风了 - -!");
     }
 }
 
@@ -152,7 +269,9 @@ function sucessvViewApp(resultData, element) {
  * 查看当前全部应用方法
  */
 function viewAll() {
-    JsonAjax("GET", "live/viewAll", "", sucessViewAllAppList);
+    // JsonAjax("GET", "live/viewAll", "", sucessViewAllAppList);
+    $('#ArbetTable').bootstrapTable('refresh');
+
 }
 
 /**
@@ -181,12 +300,12 @@ function sucessViewAllAppList(resultData) {
                 $(elementHTML).appendTo($("#appList")).data("appName", listData[i].appName);
             }
         } else {
-            alert(resultData.msg);
+            bootbox.alert(resultData.msg);
             //查询列表失败清空列表
             $("#appList").empty();
         }
     } else {
-        alert("服务器抽风了 - -!");
+        bootbox.alert("服务器抽风了 - -!");
         //查询列表失败清空列表
         $("#appList").empty();
     }
@@ -214,9 +333,9 @@ function sucesspushAndPlay(resultData) {
             view(null, sucessPlayFromView, appName);
         }
         //不管是否发布成功都要显示结果信息
-        alert(resultData.msg);
+        bootbox.alert(resultData.msg);
     } else {
-        alert("服务器抽风了，请稍后再试！");
+        bootbox.bootbox.alert("服务器抽风了，请稍后再试！");
     }
 }
 
@@ -228,9 +347,15 @@ function sucesspushAndPlay(resultData) {
  * @param element
  */
 function playFromList(element) {
-    if (window.confirm("播放这个实时应用？（提示：这将会关闭正在播放的应用）")) {
-        view(element, sucessPlayFromView);
-    }
+    bootbox.confirm({
+        size: "small",
+        message: "播放这个实时应用？（提示：这将会关闭正在播放的应用）",
+        callback: function (result) {
+            if (result) {
+                view(element, sucessPlayFromView);
+            }
+        }
+    })
 }
 
 /**
@@ -244,9 +369,9 @@ function sucessPlayFromView(resultData) {
             //修改播放地址并播放
             writeAddressAndPlay(player, playUrl)
         } else {
-            alert(resultData.msg);
+            bootbox.alert(resultData.msg);
         }
     } else {
-        alert("服务器抽风了 - -!");
+        bootbox.alert("服务器抽风了 - -!");
     }
 }

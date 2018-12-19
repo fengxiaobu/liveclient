@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 
 /**
@@ -35,26 +36,32 @@ public class CameraLiveController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/push/{appName}", method = RequestMethod.POST)
-    public ResultData open(@PathVariable("appName") String appName, LiveInfoEntity liveInfo) {
+    @RequestMapping(value = "/push", method = RequestMethod.POST)
+    public ResultData open(LiveInfoEntity liveInfo) {
         return cls.add(liveInfo);
     }
 
     @ResponseBody
-    @RequestMapping(value = "/close/{appName}", method = RequestMethod.DELETE)
-    public ResultData close(@PathVariable("appName") String appName) {
-        return cls.remove(appName);
+    @RequestMapping(value = "/close/{pushId}", method = RequestMethod.DELETE)
+    public ResultData close(@PathVariable("pushId") String pushId) {
+        return cls.remove(pushId);
     }
 
     @ResponseBody
-    @RequestMapping(value = "/view/{appName}", method = RequestMethod.GET)
-    public ResultData view(@PathVariable("appName") String appName) {
-        return cls.view(appName);
+    @RequestMapping(value = "/stop/{pushId}", method = RequestMethod.DELETE)
+    public ResultData stop(@PathVariable("pushId") String pushId) {
+        return cls.stop(pushId);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/view/{pushId}", method = RequestMethod.GET)
+    public ResultData view(@PathVariable("pushId") String pushId) {
+        return cls.view(pushId);
     }
 
     @ResponseBody
     @RequestMapping(value = "/viewAll", method = RequestMethod.GET)
-    public ResultData view() {
+    public List<LiveInfoEntity> view() {
         return cls.viewAll();
     }
 }

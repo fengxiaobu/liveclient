@@ -35,7 +35,7 @@ public class DeviceDiscovery {
 
     public static void main(String[] args) throws InterruptedException {
         for (URL url : discoverWsDevicesAsUrls()) {
-           if (url.getPort() == -1 && Validator.isIpv4(url.getHost())) {
+            if (url.getPort() == -1 && Validator.isIpv4(url.getHost())) {
                 System.out.println("Device discovered: " + url.toString());
             }
         }

@@ -98,7 +98,7 @@ public class PtzController {
                 Profile profile = profiles.get(0);
                 String rtspStreamUri = device.getMediaService().getRTSPStreamUri(profile.getToken());
                 String serviceUrl = device.getDeviceManagementService().getServiceUrl();
-                map.put("rtspStreamUri", rtspStreamUri);
+                map.put("rtspStreamUri", rtspStreamUri.replace("rtsp://", "rtsp://" + username + ":" + password + "@"));
                 map.put("serviceUrl", serviceUrl);
                 map.put("ip", ip);
                 map.put("username", username);

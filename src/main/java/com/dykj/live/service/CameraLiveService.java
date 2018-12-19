@@ -11,12 +11,13 @@ package com.dykj.live.service;
 import com.dykj.live.entity.LiveInfoEntity;
 import com.dykj.live.entity.ResultData;
 
+import java.util.List;
+
 /**
  * 管理直播流查看、发布和关闭
  *
  * @author eguid
  * @version 2016年6月30日
- * @see CamaraLiveService
  * @since jdk1.7
  */
 
@@ -32,21 +33,29 @@ public interface CameraLiveService {
     /**
      * 关闭直播流应用
      *
-     * @param appName
+     * @param pushId
      */
-    ResultData remove(String appName);
+    ResultData remove(String pushId);
 
     /**
      * 查看当前所有正在运行的直播流应用
      *
      * @return appName列表
      */
-    ResultData viewAll();
+    List<LiveInfoEntity> viewAll();
 
     /**
      * 查看应用详细
      *
      * @return appName列表
      */
-    ResultData view(String appName);
+    ResultData view(String pushId);
+
+    /**
+     * 暂停推流
+     *
+     * @param pushId
+     * @return
+     */
+    ResultData stop(String pushId);
 }

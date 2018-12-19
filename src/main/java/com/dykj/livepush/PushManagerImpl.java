@@ -4,6 +4,7 @@
 package com.dykj.livepush;
 
 
+import cn.hutool.core.util.ObjectUtil;
 import com.dykj.livepush.conf.ConfUtil;
 import com.dykj.livepush.dao.HandlerDao;
 import com.dykj.livepush.handler.OutHandler;
@@ -55,7 +56,7 @@ public class PushManagerImpl implements PushManager {
 
     @Override
     public synchronized String push(Map<String, Object> parammap) {
-        String appName = null;
+        String pushId = null;
         ConcurrentMap<String, Object> resultMap = null;
         try {
             // ffmpeg环境是否配置正确
@@ -63,39 +64,48 @@ public class PushManagerImpl implements PushManager {
                 return null;
             }
             // 参数是否符合要求
-            if (parammap == null || parammap.isEmpty() || !parammap.containsKey("appName")) {
+            if (parammap == null || parammap.isEmpty() || !parammap.containsKey("pushId")) {
                 return null;
             }
-            appName = (String) parammap.get("appName");
-            if (appName != null && "".equals(appName.trim())) {
+            pushId = String.valueOf(parammap.get("pushId"));
+            if (pushId != null && "".equals(pushId.trim())) {
                 return null;
             }
             parammap.put("ffmpegPath", confUtil.getPath());
             resultMap = pusher.push(parammap);
             // 处理器和输出线程对应关系
-            hd.set(appName, resultMap);
+            hd.set(pushId, resultMap);
         } catch (Exception e) {
             // 暂时先写这样，后期加日志
             log.error("重大错误：参数不符合要求或运行失败{}", e.getMessage());
             return null;
         }
-        return appName;
+        return pushId;
 
     }
 
     @Override
-    public synchronized boolean closePush(String appName) {
-        if (hd.isHave(appName)) {
-            ConcurrentMap<String, Object> map = hd.get(appName);
+    public synchronized boolean closePush(String pushId, int type) {
+        ConcurrentMap<String, ConcurrentMap<String, Object>> all = hd.getAll();
+        if (hd.isHave(pushId)) {
+            ConcurrentMap<String, Object> map = hd.get(pushId);
             // 关闭两个线程
-            ((OutHandler) map.get("error")).destroy();
-            ((OutHandler) map.get("info")).destroy();
+            if (ObjectUtil.isNotNull(map.get("error"))) {
+                ((OutHandler) map.get("error")).destroy();
+            }
+            if (ObjectUtil.isNotNull(map.get("info"))) {
+                ((OutHandler) map.get("info")).destroy();
+            }
             // 暂时先这样写，后期加日志
-            log.info("停止命令-----end commond");
+            log.info("{} 停止命令-----end commond", pushId);
             // 关闭命令主进程
-            ((Process) map.get("process")).destroy();
+            if (ObjectUtil.isNotNull(map.get("process"))) {
+                ((Process) map.get("process")).destroy();
+            }
             // 删除处理器与线程对应关系表
-            hd.delete(appName);
+            if (type == 0) {
+                hd.delete(pushId);
+            }
             return true;
         }
         return false;
@@ -107,8 +117,8 @@ public class PushManagerImpl implements PushManager {
     }
 
     @Override
-    public synchronized boolean isHave(String appName) {
-        return hd.isHave(appName);
+    public synchronized boolean isHave(String pushId) {
+        return hd.isHave(pushId);
 
     }
 }

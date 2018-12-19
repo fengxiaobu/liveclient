@@ -1,12 +1,8 @@
 package com.dykj.util;
 
-import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
-import cn.hutool.system.HostInfo;
-import cn.hutool.system.SystemUtil;
-import com.dykj.live.dao.CameraRepository;
-import com.dykj.live.pojo.Camera;
+import com.dykj.live.dao.LiveInfoEntityRepository;
+import com.dykj.live.entity.LiveInfoEntity;
 import org.onvif.unofficial.OnvifDevice;
 import org.onvif.unofficial.services.PtzService;
 import org.onvif.ver10.schema.Profile;
@@ -16,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import javax.xml.soap.SOAPException;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -33,7 +28,36 @@ public class PtzUtil {
      */
     private static ConcurrentMap<String, OnvifDevice> onvifDeviceConcurrentHashMap = new ConcurrentHashMap<String, OnvifDevice>(20);
     @Resource
-    CameraRepository cameraRepository;
+    LiveInfoEntityRepository liveInfoEntityRepository;
+
+    public static void main(String[] args) {
+        try {
+            OnvifDevice device = new OnvifDevice("192.168.101.224", "admin", "admin123");
+            //1OnvifDevice device = new OnvifDevice("192.168.101.202", "admin", "abc123456");
+            List<Profile> profiles = device.getMediaService().getProfiles();
+            for (Profile p : profiles) {
+                try {
+                    PtzService ptzService = device.getPtzService();
+                    ptzService.continuousMove(p.getToken(), 0.0f, 0.5f, 0.0f);
+                    System.out.println(device.getDeviceManagementService().getHostname());
+                    String serviceUrl = device.getDeviceManagementService().getServiceUrl();
+                    System.out.println(serviceUrl);
+                    p.setName("大益办公室云台");
+                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getSnapshotUri(p.getToken()));
+                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getHTTPStreamUri(p.getToken()));
+                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getRTSPStreamUri(p.getToken()));
+                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getTCPStreamUri(p.getToken()));
+                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getUDPStreamUri(p.getToken()));
+                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getModel());
+                    System.out.println();
+                } catch (SOAPException e) {
+                    System.err.println("Cannot grap snapshot URL, got Exception " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 根据ID获取云台对象
@@ -53,7 +77,7 @@ public class PtzUtil {
      */
     public void initCameraPtzServer() {
         try {
-            List<Camera> cameras = cameraRepository.findAll();
+            List<LiveInfoEntity> cameras = liveInfoEntityRepository.findAll();
             cameras.stream().filter(camera -> StrUtil.equals("ONVIF", camera.getProtocol()) && !onvifDeviceConcurrentHashMap.containsKey(camera.getCdnid())).forEach(camera -> {
                 String cdnid = camera.getCdnid();
                 String ip = camera.getIp();
@@ -119,14 +143,14 @@ public class PtzUtil {
                 return true;
             } else {
                 log.error("不支持云台功能 设备IP:{}", getHostName(device));
-                return true;
+                return false;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("云台功能发生异常,设备信息:{},异常信息:{}", getHostName(device), e.getMessage());
             return false;
         }
     }
-
 
     public void getInfo(String id) {
         OnvifDevice device = getDevice(id);
@@ -136,35 +160,6 @@ public class PtzUtil {
                 try {
 
                     System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getSnapshotUri(p.getToken()));
-                } catch (SOAPException e) {
-                    System.err.println("Cannot grap snapshot URL, got Exception " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void main(String[] args) {
-        try {
-             OnvifDevice device = new OnvifDevice("192.168.101.224", "admin", "admin123");
-            //1OnvifDevice device = new OnvifDevice("192.168.101.202", "admin", "abc123456");
-            List<Profile> profiles = device.getMediaService().getProfiles();
-            for (Profile p : profiles) {
-                try {
-                    PtzService ptzService = device.getPtzService();
-                    ptzService.continuousMove(p.getToken(), 0.0f, 0.5f, 0.0f);
-                    System.out.println(device.getDeviceManagementService().getHostname());
-                    String serviceUrl = device.getDeviceManagementService().getServiceUrl();
-                    System.out.println(serviceUrl);
-                    p.setName("大益办公室云台");
-                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getSnapshotUri(p.getToken()));
-                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getHTTPStreamUri(p.getToken()));
-                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getRTSPStreamUri(p.getToken()));
-                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getTCPStreamUri(p.getToken()));
-                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getUDPStreamUri(p.getToken()));
-                    System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getModel());
-                    System.out.println();
                 } catch (SOAPException e) {
                     System.err.println("Cannot grap snapshot URL, got Exception " + e.getMessage());
                 }

@@ -1,8 +1,8 @@
 package com.dykj.tio.client.handler;
 
 import cn.hutool.json.JSONUtil;
-import com.dykj.live.dao.CameraRepository;
-import com.dykj.live.pojo.Camera;
+import com.dykj.live.dao.LiveInfoEntityRepository;
+import com.dykj.live.entity.LiveInfoEntity;
 import com.dykj.tio.common.ShowcasePacket;
 import com.dykj.tio.common.intf.AbsShowcaseBsHandler;
 import com.dykj.tio.common.packets.P2PRespBody;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.tio.core.ChannelContext;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,7 +29,7 @@ public class P2PRespHandler extends AbsShowcaseBsHandler<P2PRespBody> {
     @Autowired
     private PtzUtil ptzUtil;
     @Autowired
-    private CameraRepository cameraRepository;
+    private LiveInfoEntityRepository liveInfoEntityRepository;
 
     /**
      * @author tanyaowu
@@ -41,7 +40,7 @@ public class P2PRespHandler extends AbsShowcaseBsHandler<P2PRespBody> {
     @PostConstruct //通过@PostConstruct实现初始化bean之前进行的操作
     public void init() {
         p2PRespHandler = this;
-        p2PRespHandler.cameraRepository = this.cameraRepository;
+        p2PRespHandler.liveInfoEntityRepository = this.liveInfoEntityRepository;
         p2PRespHandler.ptzUtil = this.ptzUtil;
         //初使化时将已静态化的accessTokenOcrRepository实例化
     }
@@ -72,9 +71,9 @@ public class P2PRespHandler extends AbsShowcaseBsHandler<P2PRespBody> {
             String cdn = String.valueOf(map.get("cdn"));
             String command = String.valueOf(map.get("command"));
             String speed = String.valueOf(map.get("speed"));
-            List<Camera> cameras = p2PRespHandler.cameraRepository.findByCdnidContaining(cdn);
+            LiveInfoEntity liveInfoEntity = p2PRespHandler.liveInfoEntityRepository.findByCdnidContaining(cdn);
             //TODO 远程云台控制
-            if (cameras.size() == 1) {
+            if (liveInfoEntity != null) {
                 try {
                     p2PRespHandler.ptzUtil.ptzMove(cdn, command, speed);
                 } catch (Exception e) {

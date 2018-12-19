@@ -30,8 +30,6 @@ public interface HandlerDao {
 
     /**
      * 存放一个处理器
-     *
-     * @param handlerMap
      */
     void set(String key, ConcurrentMap<String, Object> resultMap);
 
@@ -51,8 +49,6 @@ public interface HandlerDao {
 
     /**
      * 删除某个处理器
-     *
-     * @param pushId
      */
     void delete(String appName);
 

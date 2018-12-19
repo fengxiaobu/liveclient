@@ -32,21 +32,23 @@ public interface PushManager {
      * 通过应用名删除某个push
      *
      * @param pushId
+     * @param type  0:删除  1:停止
+     * @return
      */
-    boolean closePush(String appName);
+    boolean closePush(String pushId, int type);
+
 
     /**
      * 查看全部当前正在运行的应用名称
      *
-     * @param pushId
      */
     Set<String> viewAppName();
 
     /**
      * 应用是否已经存在
      *
-     * @param appName
+     * @param pushId
      * @return true:存在；false:不存在
      */
-    boolean isHave(String appName);
+    boolean isHave(String pushId);
 }
