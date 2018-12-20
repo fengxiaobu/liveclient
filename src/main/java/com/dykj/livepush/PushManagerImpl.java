@@ -85,8 +85,7 @@ public class PushManagerImpl implements PushManager {
     }
 
     @Override
-    public synchronized boolean closePush(String pushId, int type) {
-        ConcurrentMap<String, ConcurrentMap<String, Object>> all = hd.getAll();
+    public synchronized boolean closePush(String pushId) {
         if (hd.isHave(pushId)) {
             ConcurrentMap<String, Object> map = hd.get(pushId);
             // 关闭两个线程
@@ -103,9 +102,7 @@ public class PushManagerImpl implements PushManager {
                 ((Process) map.get("process")).destroy();
             }
             // 删除处理器与线程对应关系表
-            if (type == 0) {
-                hd.delete(pushId);
-            }
+            hd.delete(pushId);
             return true;
         }
         return false;

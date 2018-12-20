@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * 重启停止的推流线程
@@ -55,23 +54,19 @@ public class QuartzService {
     /**
      * 每10分钟检查开启一次
      */
-    @Scheduled(cron = "0 10 * * * ? ")
+    @Scheduled(cron = "0 0/3 * * * ?")
     public void sysOpen() {
         try {
-            ConcurrentMap<String, ConcurrentMap<String, Object>> hdAll = hd.getAll();
-            hdAll.forEach((k, v) -> {
-                ConcurrentMap<String, Object> map = hd.get(k);
-                Boolean isOpen = Boolean.valueOf(String.valueOf(map.get("open")));
-                String pushId = String.valueOf(map.get("pushId"));
-                boolean isAlive = ((Process) map.get("process")).isAlive();
-                LiveInfoEntity liveInfoEntity = liveInfoEntityRepository.findById(Long.valueOf(pushId)).get();
-                log.info("{} 线程状态: {}", liveInfoEntity.getAppName(), isAlive);
-                log.info("{} 开启状态: {}", liveInfoEntity.getAppName(), isOpen);
-                if (!isAlive) {
-                    pusher.closePush(pushId, 0);
+            List<LiveInfoEntity> liveInfoEntities = liveInfoEntityRepository.findAll();
+            liveInfoEntities.forEach(liveInfoEntity -> {
+                if (liveInfoEntity.getOnline() && liveInfoEntity.getOpen()) {
+                    pusher.closePush(String.valueOf(liveInfoEntity.getPushId()));
                     pusher.push(commandUtil.getMap4LiveInfo(liveInfoEntity));
+                } else {
+                    log.info("{} _ {}处于离线状态", liveInfoEntity.getPushId(), liveInfoEntity.getAppName());
                 }
             });
+            log.info("定时开启推流信息成功");
         } catch (Exception e) {
             log.error("定时开启推流信息发生错误 {}", e.getMessage());
         }
@@ -158,16 +153,16 @@ public class QuartzService {
             List<LiveInfoEntity> liveInfoEntities = liveInfoEntityRepository.findAll();
             liveInfoEntities.forEach(liveInfoEntity -> {
                 boolean connect = netStateUtil.isConnect(liveInfoEntity.getIp());
-                String appName = liveInfoEntity.getAppName();
+                String pushId = String.valueOf(liveInfoEntity.getPushId());
                 liveInfoEntity.setOnline(connect);
-                if (!connect) {
-                    liveInfoEntity.setOpen(false);
-                    pusher.closePush(appName, 1);
-                }
                 liveInfoEntityRepository.saveAndFlush(liveInfoEntity);
+                if (!connect) {
+                    pusher.closePush(pushId);
+                }
             });
+            log.info("检测摄像头服务可用状态成功");
         } catch (Exception e) {
-            log.error("发生异常" + e.getMessage());
+            log.error("检测摄像头服务可用状态时发生异常" + e.getMessage());
         }
     }
 

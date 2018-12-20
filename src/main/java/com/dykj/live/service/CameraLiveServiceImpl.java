@@ -107,7 +107,7 @@ public class CameraLiveServiceImpl implements CameraLiveService {
     public ResultData remove(String pushId) {
         ResultData result = new ResultData();
         if (pushId != null && liveInfoEntityRepository.existsById(Long.valueOf(pushId))) {
-            pusher.closePush(pushId, 0);
+            pusher.closePush(pushId);
             liveInfoEntityRepository.deleteById(Long.valueOf(pushId));
             ResultDataUtil.setData(result, "0", "删除成功", "");
         } else {
@@ -144,7 +144,7 @@ public class CameraLiveServiceImpl implements CameraLiveService {
                 pusher.push(BeanUtil.beanToMap(liveInfo));
             } else {
                 liveInfo.setOpen(!liveInfo.getOpen());
-                pusher.closePush(pushId, 1);
+                pusher.closePush(pushId);
             }
 
             liveInfoEntityRepository.saveAndFlush(liveInfo);

@@ -32,6 +32,7 @@ public class CommandUtil {
         String transport = liveInfo.getTransport();
         Boolean open = liveInfo.getOpen();
         Long pushId = liveInfo.getPushId();
+        Boolean online = liveInfo.getOnline();
 
         Map<String, Object> map = new HashMap<String, Object>(20);
         map.put("appName", appName);
@@ -48,6 +49,7 @@ public class CommandUtil {
         map.put("protocol", protocol);
         map.put("transport", transport);
         map.put("open", open);
+        map.put("online", online);
 
         if (fmt != null) {
             map.put("fmt", fmt);

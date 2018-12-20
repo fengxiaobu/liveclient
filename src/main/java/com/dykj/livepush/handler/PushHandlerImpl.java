@@ -4,7 +4,6 @@
 package com.dykj.livepush.handler;
 
 import cn.hutool.core.util.RuntimeUtil;
-import cn.hutool.core.util.StrUtil;
 import com.dykj.util.CommandUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +46,14 @@ public class PushHandlerImpl implements PushHandler {
             //proc = Runtime.getRuntime().exec(new String[]{"sh", "-c", comm});
             //proc = Runtime.getRuntime().exec(comm);
             // 返回参数
-            resultMap = new ConcurrentHashMap<>();
+            resultMap = new ConcurrentHashMap<>(6);
             resultMap.put("map", paramMap);
-            String open = String.valueOf(paramMap.get("open"));
+            Boolean open = Boolean.valueOf(String.valueOf(paramMap.get("open")));
+            Boolean online = Boolean.valueOf(String.valueOf(paramMap.get("online")));
             resultMap.put("open", open);
+            resultMap.put("online", online);
             log.info("开启状态 {}", open);
-            if (StrUtil.equals("true", open)) {
+            if (online && open) {
                 proc = RuntimeUtil.exec(comm);
                 errorGobbler = new OutHandler(proc.getErrorStream(), paramMap.get("appName") + "_ERROR");
                 infoGobbler = new OutHandler(proc.getInputStream(), paramMap.get("appName") + "_INFO");

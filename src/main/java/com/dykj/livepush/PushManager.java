@@ -32,10 +32,9 @@ public interface PushManager {
      * 通过应用名删除某个push
      *
      * @param pushId
-     * @param type  0:删除  1:停止
      * @return
      */
-    boolean closePush(String pushId, int type);
+    boolean closePush(String pushId);
 
 
     /**
