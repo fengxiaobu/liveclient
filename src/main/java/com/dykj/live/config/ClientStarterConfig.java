@@ -30,7 +30,6 @@ import org.tio.utils.json.Json;
 public class ClientStarterConfig implements ApplicationRunner {
 
     static String serverIp = "222.212.90.164";
-    //static String serverIp = "127.0.0.1";
     static int serverPort = Const.PORT;
     static ClientChannelContext clientChannelContext;
     private static Node serverNode = new Node(serverIp, serverPort);
@@ -56,7 +55,6 @@ public class ClientStarterConfig implements ApplicationRunner {
         ShowcasePacket reqPacket = new ShowcasePacket();
         reqPacket.setType(Type.LOGIN_REQ);
         reqPacket.setBody(Json.toJson(loginReqBody).getBytes(ShowcasePacket.CHARSET));
-
         Tio.send(clientChannelContext, reqPacket);
     }
 

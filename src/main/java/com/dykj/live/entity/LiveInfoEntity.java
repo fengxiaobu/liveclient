@@ -112,13 +112,13 @@ public class LiveInfoEntity implements Serializable {
      */
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date update_time = new Date();
+    private Date update_time;
     /**
      * 创建时间
      */
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date create_time = new Date();
+    private Date create_time;
 
     public Boolean getOnline() {
         return online;

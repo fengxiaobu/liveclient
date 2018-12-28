@@ -1,15 +1,23 @@
 package com.dykj.util;
 
 import cn.hutool.core.util.StrUtil;
+import com.dykj.live.config.Easy;
 import com.dykj.live.entity.LiveInfoEntity;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author sjy
+ * <p>
+ * 解析命令
+ */
 @Component
 public class CommandUtil {
-
+    @Resource
+    private Easy easy;
 
     /**
      * 解析参数
@@ -99,21 +107,27 @@ public class CommandUtil {
 
                     //默认h264解码
                     //codec = (codec == null ? "h264" : (String) paramMap.get("codec"));
-                    if (StrUtil.containsAny(input, "rtsp://")) {
-                        // comm.append(" -loglevel quiet -rtsp_transport tcp  -i ");
-                        comm.append(" -rtsp_transport tcp  -i ");
-                    } else {
-                        //comm.append("  -loglevel quiet -i ");
-                        comm.append(" -i ");
-                    }
+                    comm.append(" -i ");
+
                     // 输入地址
                     comm.append("\"").append(input).append("\"");
+
+                    if (StrUtil.containsAny(input, "rtsp://")) {
+                        // comm.append(" -loglevel quiet -rtsp_transport tcp  -i ");
+                        comm.append(" -rtsp_transport tcp ");
+                    }
+
+                    if (StrUtil.equals("true", easy.getLogLevel())) {
+                        comm.append(" -loglevel quiet  -vcodec copy -acodec copy  ");
+                    } else {
+                        comm.append(" -vcodec copy -acodec copy  ");
+                    }
                     // 当twoPart为0时，只推一个元码流
                     if ("0".equals(twoPart)) {
                         //转码-耗费CPU
                         //comm.append(" -vcodec " + codec + " -f flv -an " + output  );
                         //不转码直接推流-省资源_推荐
-                        comm.append(" -c copy -f flv \"" + output + "\"");
+                        comm.append(" -f flv -y \"" + output + "\"");
                     } else {
                         // -f ：转换格式，默认flv
                         if (paramMap.containsKey("fmt")) {

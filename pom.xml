@@ -9,8 +9,7 @@
     <packaging>jar</packaging>
 
     <name>LiveClient</name>
-    <description>Demo project for Spring Boot</description>
-
+    <description>Spring Boot 一个推流器 rtsp->rtmp</description>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -22,7 +21,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <hutool.version>4.2.1</hutool.version>
+        <hutool.version>4.3.1</hutool.version>
+        <javacv.version>1.4.3</javacv.version>
         <t-io.version>3.2.2.v20181122-RELEASE</t-io.version>
     </properties>
 
@@ -31,6 +31,27 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--替换tomcat为undertow-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!--引入jetty-->
+        <!-- <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-jetty</artifactId>
+         </dependency>-->
+        <!--引入undertow-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
         <!-- thymeleaf 模版 -->
         <dependency>
@@ -54,11 +75,18 @@
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
         </dependency>
+
         <!--t-io支持-->
         <dependency>
             <groupId>org.t-io</groupId>
             <artifactId>tio-core</artifactId>
             <version>${t-io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
         <!--测试插件-->
         <dependency>
@@ -66,12 +94,21 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-      <!--  &lt;!&ndash;推流器&ndash;&gt;
+        <!--暂不使用-->
+        <!--推流器-->
         <dependency>
             <groupId>cc.eguid.cv.corelib</groupId>
             <artifactId>videoRecorder</artifactId>
             <version>2018.10.18</version>
-        </dependency>-->
+            <scope>test</scope>
+        </dependency>
+        <!--javacv-->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>${javacv.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

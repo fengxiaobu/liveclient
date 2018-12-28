@@ -26,7 +26,7 @@ public class PtzUtil {
     /**
      * 存放云台对象
      */
-    private static ConcurrentMap<String, OnvifDevice> onvifDeviceConcurrentHashMap = new ConcurrentHashMap<String, OnvifDevice>(20);
+    private static ConcurrentMap<String, OnvifDevice> onvifDeviceConcurrentHashMap = new ConcurrentHashMap<>(20);
     @Resource
     LiveInfoEntityRepository liveInfoEntityRepository;
 
@@ -42,7 +42,7 @@ public class PtzUtil {
                     System.out.println(device.getDeviceManagementService().getHostname());
                     String serviceUrl = device.getDeviceManagementService().getServiceUrl();
                     System.out.println(serviceUrl);
-                    p.setName("大益办公室云台");
+                    p.setName("test");
                     System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getSnapshotUri(p.getToken()));
                     System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getHTTPStreamUri(p.getToken()));
                     System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getRTSPStreamUri(p.getToken()));
@@ -62,12 +62,12 @@ public class PtzUtil {
     /**
      * 根据ID获取云台对象
      *
-     * @param id
+     * @param key
      * @return
      */
-    public OnvifDevice getDevice(String id) {
-        if (onvifDeviceConcurrentHashMap.containsKey(id)) {
-            return onvifDeviceConcurrentHashMap.get(id);
+    public OnvifDevice getDevice(String key) {
+        if (onvifDeviceConcurrentHashMap.containsKey(key)) {
+            return onvifDeviceConcurrentHashMap.get(key);
         }
         return null;
     }
@@ -93,6 +93,22 @@ public class PtzUtil {
             });
         } catch (Exception e) {
             log.error("注册云台对象发生错   错误原因:{}", e.getMessage());
+        }
+    }
+
+    /**
+     * 移除云台对象
+     */
+    public void removeCameraPtzServer(String key) {
+        try {
+            if (onvifDeviceConcurrentHashMap.containsKey(key)) {
+                onvifDeviceConcurrentHashMap.remove(key);
+                log.info("移除云台对象_{}", key);
+            } else {
+                log.info("未找到云台对象_{}", key);
+            }
+        } catch (Exception e) {
+            log.error("移除云台对象发生错   错误原因:{}", e.getMessage());
         }
     }
 
@@ -158,7 +174,6 @@ public class PtzUtil {
             List<Profile> profiles = device.getMediaService().getProfiles();
             for (Profile p : profiles) {
                 try {
-
                     System.out.println("URL from Profile \'" + p.getName() + "\': " + device.getMediaService().getSnapshotUri(p.getToken()));
                 } catch (SOAPException e) {
                     System.err.println("Cannot grap snapshot URL, got Exception " + e.getMessage());

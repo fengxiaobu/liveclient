@@ -45,7 +45,7 @@ public class InitData implements ApplicationRunner {
                     log.error("初始化推流信息发生异常: {}", e.getMessage());
                 }
             });
-            log.info("初始化 {} 条推流信息成功:", cameras.size());
+            log.info("初始化推流信息成功");
         } catch (Exception e) {
             e.printStackTrace();
             log.error("初始化推流信息发生异常: {}", e.getMessage());

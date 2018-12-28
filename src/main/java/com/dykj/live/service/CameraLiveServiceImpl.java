@@ -15,12 +15,15 @@ import com.dykj.live.entity.LiveInfoEntity;
 import com.dykj.live.entity.ResultData;
 import com.dykj.livepush.PushManager;
 import com.dykj.util.CommandUtil;
+import com.dykj.util.PtzUtil;
 import com.dykj.util.ResultDataUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +49,8 @@ public class CameraLiveServiceImpl implements CameraLiveService {
     private PushManager pusher;
     @Autowired
     private CommandUtil commandUtil;
+    @Resource
+    PtzUtil ptzUtil;
 
     @Override
     public ResultData add(LiveInfoEntity liveInfo) {
@@ -63,8 +68,9 @@ public class CameraLiveServiceImpl implements CameraLiveService {
                     pusher.push(map);
                     // 存放信息
                     liveInfo.setCdnid(getCdnId(liveInfo.getOutput()));
+                    liveInfo.setCreate_time(new Date());
+                    liveInfo.setUpdate_time(new Date());
                     liveInfoEntityRepository.saveAndFlush(liveInfo);
-
                     ResultDataUtil.setData(result, "0", "成功发布应用", map);
                 }
             } else {
@@ -74,16 +80,6 @@ public class CameraLiveServiceImpl implements CameraLiveService {
             ResultDataUtil.setData(result, "1", "发布应用失败", appName);
         }
         return result;
-    }
-
-    /**
-     * 查询是否存在应用
-     *
-     * @param appName
-     * @return
-     */
-    public boolean containsKey(String appName) {
-        return liveInfoEntityRepository.existsDistinctByAppNameContaining(appName);
     }
 
     /**
@@ -106,8 +102,10 @@ public class CameraLiveServiceImpl implements CameraLiveService {
     @Override
     public ResultData remove(String pushId) {
         ResultData result = new ResultData();
-        if (pushId != null && liveInfoEntityRepository.existsById(Long.valueOf(pushId))) {
+        LiveInfoEntity infoEntity = liveInfoEntityRepository.findById(Long.valueOf(pushId)).get();
+        if (pushId != null && infoEntity != null) {
             pusher.closePush(pushId);
+            ptzUtil.removeCameraPtzServer(infoEntity.getCdnid());
             liveInfoEntityRepository.deleteById(Long.valueOf(pushId));
             ResultDataUtil.setData(result, "0", "删除成功", "");
         } else {
@@ -146,11 +144,11 @@ public class CameraLiveServiceImpl implements CameraLiveService {
                 liveInfo.setOpen(!liveInfo.getOpen());
                 pusher.closePush(pushId);
             }
-
+            liveInfo.setUpdate_time(new Date());
             liveInfoEntityRepository.saveAndFlush(liveInfo);
             ResultDataUtil.setData(result, "0", "成功", pushId);
         } else {
-            ResultDataUtil.setData(result, "2", "非法操作或暂停失败", pushId);
+            ResultDataUtil.setData(result, "2", "非法操作暂停失败", pushId);
         }
         return result;
     }

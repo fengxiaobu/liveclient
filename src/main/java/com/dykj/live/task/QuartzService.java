@@ -1,15 +1,16 @@
 package com.dykj.live.task;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpException;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
 import com.dykj.live.config.ClientStarterConfig;
+import com.dykj.live.config.Easy;
 import com.dykj.live.dao.LiveInfoEntityRepository;
 import com.dykj.live.entity.LiveInfoEntity;
 import com.dykj.livepush.PushManager;
-import com.dykj.livepush.dao.HandlerDao;
 import com.dykj.util.CommandUtil;
 import com.dykj.util.NetStateUtil;
 import com.dykj.util.PtzUtil;
@@ -20,31 +21,24 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * 重启停止的推流线程
- * 同步数据到数据库
- *
+ * 同步数据  检查摄像头 同步信息 初始化云台
  * @author sjy
  */
 @Component
 public class QuartzService {
-    private final static String UPDATE_CAMERA = "http://222.212.90.164:8088/camera/v3/update";
-    //private final static String UPDATE_CAMERA = "http://127.0.0.1:8080/camera/v3/update";
+    @Resource
+    private Easy easy;
 
     private static Logger log = LoggerFactory.getLogger(QuartzService.class);
     @Resource
     private LiveInfoEntityRepository liveInfoEntityRepository;
     @Resource
-    private HandlerDao hd;
-    @Resource
-    private PushManager pusher;
-    @Resource
     private PtzUtil ptzUtil;
+    @Resource
+    private PushManager pushManager;
 
     @Resource
     private NetStateUtil netStateUtil;
@@ -52,21 +46,46 @@ public class QuartzService {
     private CommandUtil commandUtil;
 
     /**
-     * 每10分钟检查开启一次
+     * 每1分钟检查开启一次
      */
-    @Scheduled(cron = "0 0/3 * * * ?")
-    public void sysOpen() {
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void sysOpenLive() {
         try {
             List<LiveInfoEntity> liveInfoEntities = liveInfoEntityRepository.findAll();
+            log.info("定时开启推流信息开始");
             liveInfoEntities.forEach(liveInfoEntity -> {
-                if (liveInfoEntity.getOnline() && liveInfoEntity.getOpen()) {
-                    pusher.closePush(String.valueOf(liveInfoEntity.getPushId()));
-                    pusher.push(commandUtil.getMap4LiveInfo(liveInfoEntity));
-                } else {
-                    log.info("{} _ {}处于离线状态", liveInfoEntity.getPushId(), liveInfoEntity.getAppName());
+                try {
+                    HttpResponse response = HttpRequest.post(easy.getGetSession())
+                            .form("id", liveInfoEntity.getCdnid())
+                            //超时，毫秒
+                            .timeout(20000)
+                            .execute();
+                    String body = response.body();
+                    log.info("DSS服务器返回信息: {}", body);
+                    if (JSONUtil.isJson(body)) {
+                        Map<String, Object> map = JSONUtil.toBean(body, Map.class);
+                        Object session = map.get("session");
+                        if (ObjectUtil.isNull(session)) {
+                            log.info("直播{} _ {}_停止", liveInfoEntity.getPushId(), liveInfoEntity.getAppName());
+                            if (liveInfoEntity.getOnline() && liveInfoEntity.getOpen()) {
+                                pushManager.closePush(String.valueOf(liveInfoEntity.getPushId()));
+                                pushManager.push(commandUtil.getMap4LiveInfo(liveInfoEntity));
+                                log.info("直播 {} _ {}处于开启/在线成功{}_{}", liveInfoEntity.getPushId(), liveInfoEntity.getAppName(), liveInfoEntity.getOnline(), liveInfoEntity.getOpen());
+                            } else {
+                                log.info("直播 {} _ {}处于离线/关闭状态{}_{}", liveInfoEntity.getPushId(), liveInfoEntity.getAppName(), liveInfoEntity.getOnline(), liveInfoEntity.getOpen());
+                            }
+                        } else {
+                            log.info("直播{} _ {}_推流中", liveInfoEntity.getPushId(), liveInfoEntity.getAppName());
+                        }
+                    } else {
+                        log.error("DSS服务器返回的数据不是JSON");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("DSS服务器发生错误{}", e.getMessage());
                 }
             });
-            log.info("定时开启推流信息成功");
+            log.info("定时开启推流信息结束");
         } catch (Exception e) {
             log.error("定时开启推流信息发生错误 {}", e.getMessage());
         }
@@ -76,7 +95,7 @@ public class QuartzService {
      * 每分钟启动同步数据
      */
     @Scheduled(cron = "0 0/1 * * * ?")
-    public void sysLive() {
+    public void sysLiveInfo() {
         try {
             try {
                 List<LiveInfoEntity> liveInfoEntities = liveInfoEntityRepository.findAll();
@@ -111,7 +130,7 @@ public class QuartzService {
                 HashMap<String, String> hashMap = MapUtil.newHashMap();
                 hashMap.put("key", UidManage.getInstance().gettUid());
                 hashMap.put("list", JSONUtil.toJsonStr(list));
-                HttpResponse response = HttpRequest.post(UPDATE_CAMERA)
+                HttpResponse response = HttpRequest.post(easy.getUpdateCamera())
                         .form("data", JSONUtil.toJsonStr(hashMap))
                         //超时，毫秒
                         .timeout(20000)
@@ -131,6 +150,8 @@ public class QuartzService {
 
     /**
      * 同步登陆t-io服务器
+     *
+     *
      */
     @Scheduled(cron = "0 0/1 * * * ?")
     public void sysRegister() {
@@ -140,7 +161,19 @@ public class QuartzService {
             //初始化新增云台对象
             ptzUtil.initCameraPtzServer();
         } catch (Exception e) {
-            log.error("发生异常" + e.getMessage());
+            log.error("同步登陆t-io服务器时发生异常" + e.getMessage());
+        }
+    }
+
+    /**
+     * 初始化新增云台对象
+     */
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void sysInitCameraPtzServer() {
+        try {
+            ptzUtil.initCameraPtzServer();
+        } catch (Exception e) {
+            log.error("初始化新增云台对象时发生异常" + e.getMessage());
         }
     }
 
@@ -148,19 +181,22 @@ public class QuartzService {
      * 定时摄像头服务可用状态
      */
     @Scheduled(cron = "0 0/1 * * * ?")
-    public void sysContent() {
+    public void sysCheckContent() {
         try {
             List<LiveInfoEntity> liveInfoEntities = liveInfoEntityRepository.findAll();
             liveInfoEntities.forEach(liveInfoEntity -> {
                 boolean connect = netStateUtil.isConnect(liveInfoEntity.getIp());
                 String pushId = String.valueOf(liveInfoEntity.getPushId());
                 liveInfoEntity.setOnline(connect);
+                liveInfoEntity.setUpdate_time(new Date());
                 liveInfoEntityRepository.saveAndFlush(liveInfoEntity);
-                if (!connect) {
-                    pusher.closePush(pushId);
+                if (connect) {
+                    log.info("摄像头{}_服务可用", liveInfoEntity.getAppName());
+                } else {
+                    pushManager.closePush(pushId);
+                    log.info("摄像头{}_服务不可用", liveInfoEntity.getAppName());
                 }
             });
-            log.info("检测摄像头服务可用状态成功");
         } catch (Exception e) {
             log.error("检测摄像头服务可用状态时发生异常" + e.getMessage());
         }

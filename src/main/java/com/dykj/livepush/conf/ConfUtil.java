@@ -5,8 +5,10 @@ package com.dykj.livepush.conf;
 
 import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dykj.util.ErrorMsg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,6 +25,8 @@ public class ConfUtil {
     private volatile static String ffmpegPath = "ffmpeg";
     private static Logger log = LoggerFactory.getLogger(ConfUtil.class);
 
+    @Autowired
+    ErrorMsg errorMsg;
     public ConfUtil() {
         initConfInfo();
     }
@@ -39,6 +43,7 @@ public class ConfUtil {
             log.info("预加载FFMPEG配置:{}", isHave() ? "加载ffmpeg成功！" : "加载ffmpeg失败！");
         } catch (Exception e) {
             e.printStackTrace();
+            errorMsg.putMsg("msg", "加载ffmpeg失败！");
             log.error("执行<ffmpeg  -version>的时候发生错误,错误原因:{}", e.getMessage());
         }
     }

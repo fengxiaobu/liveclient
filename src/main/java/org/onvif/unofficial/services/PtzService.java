@@ -23,7 +23,7 @@ public class PtzService extends AbstractService {
      * @throws Exception
      */
     public PTZConfiguration getPTZConfiguration(String profileToken) throws Exception {
-        if (profileToken == null || profileToken.equals("")) {
+        if (profileToken == null || "".equals(profileToken)) {
             return null;
         }
         Profile profile = onvifDevice.getMediaService().getProfile(profileToken);

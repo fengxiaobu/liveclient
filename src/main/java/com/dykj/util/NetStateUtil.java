@@ -18,7 +18,6 @@ public class NetStateUtil {
     public static void main(String[] args) {
         NetStateUtil netStateUtil = new NetStateUtil();
         System.out.println(netStateUtil.isConnect("192.168.101.224"));
-
     }
 
     /**
@@ -47,10 +46,9 @@ public class NetStateUtil {
             is.close();
             isr.close();
             br.close();
-            if (null != sb && !sb.toString().equals("")) {
-                String logString = "";
+            if (null != sb && !"".equals(sb.toString())) {
                 // 网络畅通
-// 网络不畅通
+                // 网络不畅通
                 connect = sb.toString().indexOf("TTL") > 0;
             }
         } catch (IOException e) {

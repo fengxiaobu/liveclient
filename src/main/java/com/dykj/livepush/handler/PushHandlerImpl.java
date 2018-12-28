@@ -4,9 +4,11 @@
 package com.dykj.livepush.handler;
 
 import cn.hutool.core.util.RuntimeUtil;
+import com.dykj.live.config.ScheduleConfig;
 import com.dykj.util.CommandUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -29,6 +31,8 @@ public class PushHandlerImpl implements PushHandler {
 
     @Resource
     private CommandUtil commandUtil;
+    @Resource
+    private ThreadPoolTaskScheduler taskScheduler;
     @Override
     public ConcurrentMap<String, Object> push(Map<String, Object> paramMap) throws Exception {
         ConcurrentMap<String, Object> resultMap = null;
@@ -55,11 +59,15 @@ public class PushHandlerImpl implements PushHandler {
             log.info("开启状态 {}", open);
             if (online && open) {
                 proc = RuntimeUtil.exec(comm);
+
                 errorGobbler = new OutHandler(proc.getErrorStream(), paramMap.get("appName") + "_ERROR");
                 infoGobbler = new OutHandler(proc.getInputStream(), paramMap.get("appName") + "_INFO");
-
-                errorGobbler.start();
-                infoGobbler.start();
+                taskScheduler.execute(errorGobbler);
+                taskScheduler.execute(infoGobbler);
+                //scheduleConfig.getAsyncExecutor().execute(errorGobbler);
+                //scheduleConfig.getAsyncExecutor().execute(infoGobbler);
+                //errorGobbler.start();
+                //infoGobbler.start();
 
                 resultMap.put("info", infoGobbler);
                 resultMap.put("error", errorGobbler);
