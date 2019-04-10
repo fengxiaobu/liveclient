@@ -21,7 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <hutool.version>4.3.1</hutool.version>
+        <hutool.version>4.5.2</hutool.version>
         <javacv.version>1.4.3</javacv.version>
         <t-io.version>3.2.2.v20181122-RELEASE</t-io.version>
     </properties>
@@ -81,6 +81,12 @@
             <groupId>org.t-io</groupId>
             <artifactId>tio-core</artifactId>
             <version>${t-io.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.hutool</groupId>
+                    <artifactId>hutool-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -109,10 +115,16 @@
             <version>${javacv.version}</version>
             <scope>test</scope>
         </dependency>
+        <!--okhttp-->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.0</version>
+        </dependency>
     </dependencies>
 
     <build>
-        <finalName>ROOT</finalName>
+        <finalName>push</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

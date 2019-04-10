@@ -63,7 +63,7 @@ public class LiveInfoEntity implements Serializable {
     /**
      * CDN直播ID
      */
-    @Column
+    @Column(unique = true)
     private String cdnid;
 
     /**

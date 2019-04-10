@@ -60,9 +60,16 @@ public class CameraLiveServiceImpl implements CameraLiveService {
                 && liveInfo.getOutput() != null) {
             if (ResultDataUtil.checkURLNoCN(liveInfo.getInput())
                     && ResultDataUtil.checkURLNoCN(liveInfo.getOutput())) {
+                appName = liveInfo.getAppName();
                 if (StrUtil.equals("ONVIF", liveInfo.getProtocol()) && (StrUtil.isBlank(liveInfo.getIp()) || StrUtil.isBlank(liveInfo.getUsername()) || StrUtil.isBlank(liveInfo.getPassword()))) {
                     ResultDataUtil.setData(result, "3", "发布应用失败：应用为ONVIF的时候IP,用户名,密码不能为空!", appName);
                 } else {
+                    boolean distinctAppName = liveInfoEntityRepository.existsAllByAppName(liveInfo.getAppName());
+                    boolean distinctCdnId = liveInfoEntityRepository.existsAllByCdnid(getCdnId(liveInfo.getOutput()));
+                    if (distinctAppName || distinctCdnId) {
+                        ResultDataUtil.setData(result, "3", "发布应用失败：应用已存在", appName);
+                        return result;
+                    }
                     Map<String, Object> map = commandUtil.getMap4LiveInfo(liveInfo);
                     //开启推送处理器
                     pusher.push(map);

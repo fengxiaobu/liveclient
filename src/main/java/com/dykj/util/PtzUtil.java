@@ -78,7 +78,7 @@ public class PtzUtil {
     public void initCameraPtzServer() {
         try {
             List<LiveInfoEntity> cameras = liveInfoEntityRepository.findAll();
-            cameras.stream().filter(camera -> StrUtil.equals("ONVIF", camera.getProtocol()) && !onvifDeviceConcurrentHashMap.containsKey(camera.getCdnid())).forEach(camera -> {
+            cameras.stream().filter(camera -> StrUtil.equals("ONVIF", camera.getProtocol()) && camera.getOnline() && !onvifDeviceConcurrentHashMap.containsKey(camera.getCdnid())).forEach(camera -> {
                 String cdnid = camera.getCdnid();
                 String ip = camera.getIp();
                 String username = camera.getUsername();

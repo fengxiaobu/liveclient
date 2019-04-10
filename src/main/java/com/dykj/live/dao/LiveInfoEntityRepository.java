@@ -22,7 +22,8 @@ public interface LiveInfoEntityRepository extends JpaRepository<LiveInfoEntity, 
     @Transactional(rollbackFor = Exception.class)
     int removeByAppName(String appName);
 
-    boolean existsDistinctByAppNameContaining(String appName);
+    boolean existsAllByAppName(String appName);
 
-    boolean existsDistinctByCdnidContaining(String appName);
+    boolean existsAllByCdnid(String cdnId);
+
 }

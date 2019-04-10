@@ -2,7 +2,6 @@ package com.dykj.live.task;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.http.HttpException;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
@@ -15,12 +14,14 @@ import com.dykj.util.CommandUtil;
 import com.dykj.util.NetStateUtil;
 import com.dykj.util.PtzUtil;
 import com.dykj.util.UidManage;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -114,6 +115,9 @@ public class QuartzService {
                             String protocol = v.getProtocol();
                             //获取直播CDN ID
                             String cdnid = v.getCdnid();
+                            String cameraIP = v.getIp();
+                            String cameraUserName = v.getUsername();
+                            String cameraPassword = v.getPassword();
                             Map<String, Object> map = new HashMap<>(6);
                             map.put("cdn", cdn);
                             map.put("name", name);
@@ -122,6 +126,9 @@ public class QuartzService {
                             map.put("cdnid", cdnid);
                             map.put("transport", transport);
                             map.put("protocol", protocol);
+                            map.put("cameraIP", cameraIP);
+                            map.put("cameraUserName", cameraUserName);
+                            map.put("cameraPassword", cameraPassword);
                             list.add(map);
                             log.info("ID:{}  数据:{}", v.getCdnid(), v.toString());
                         }
@@ -130,14 +137,19 @@ public class QuartzService {
                 HashMap<String, String> hashMap = MapUtil.newHashMap();
                 hashMap.put("key", UidManage.getInstance().gettUid());
                 hashMap.put("list", JSONUtil.toJsonStr(list));
+                String jsonStr = JSONUtil.toJsonStr(hashMap);
+                log.info("上传数据 ------->:{}", jsonStr);
+                String post = post(easy.getUpdateCamera(), jsonStr);
                 HttpResponse response = HttpRequest.post(easy.getUpdateCamera())
-                        .form("data", JSONUtil.toJsonStr(hashMap))
+                        .form("data", jsonStr)
                         //超时，毫秒
                         .timeout(20000)
+                        .disableCache()
                         .execute();
-                log.info("上传数据结果------->:{}", response.body().trim());
+                /*response.body().trim()*/
+                log.info("上传数据结果------->:{}", post);
                 log.info("上传数量为------->:{}", list.size());
-            } catch (HttpException e) {
+            } catch (IOException e) {
                 log.error("发生异常----->上传通道数据网络错误");
             }
         } catch (Exception e) {
@@ -202,5 +214,19 @@ public class QuartzService {
         }
     }
 
+    public static final MediaType JSON = MediaType.get("application/form-data; charset=utf-8");
+
+    OkHttpClient client = new OkHttpClient();
+
+    public String post(String url, String json) throws IOException {
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        }
+    }
 }
 

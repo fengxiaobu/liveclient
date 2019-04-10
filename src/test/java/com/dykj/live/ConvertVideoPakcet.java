@@ -88,7 +88,12 @@ public class ConvertVideoPakcet {
         if (out.indexOf("rtmp") >= 0 || out.indexOf("flv") > 0) {
             // 封装格式flv
             record.setFormat("flv");
-            record.setAudioCodecName("aac");
+            // -vcodec libx264 -c:a aac -rtsp_transport tcp
+            //record.setOption("-rtsp_transport","tcp");
+            //record.setOption("-vcodec","libx264");
+            //record.setOption("-c:a","aac");
+            //record.setAudioCodecName("aac");
+            //record.setVideoCodecName("c aac");
             record.setVideoCodec(codecid);
             fc = grabber.getFormatContext();
         }
@@ -128,8 +133,8 @@ public class ConvertVideoPakcet {
     public static void main(String[] args) throws Exception, IOException {
         //运行，设置视频源和推流地址
         new ConvertVideoPakcet()
-                .from("rtsp://184.72.239.149/vod/mp4://BigBuckBunny_175k.mov")
-                //.from("rtsp://admin:admin123@192.168.101.224:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif")
+                //.from("rtsp://184.72.239.149/vod/mp4://BigBuckBunny_175k.mov")
+                 .from("rtsp://admin:admin123@192.168.101.224:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif")
                 .to("rtmp://video-console.benefitech.cn:10085/hls/eguid")
                 .go();
     }

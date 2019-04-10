@@ -118,9 +118,13 @@ public class CommandUtil {
                     }
 
                     if (StrUtil.equals("true", easy.getLogLevel())) {
-                        comm.append(" -loglevel quiet  -vcodec copy -acodec copy  ");
+                        // comm.append(" -loglevel quiet  -vcodec copy -an  ");
+                        comm.append(" -loglevel quiet  -vcodec copy -c:a aac  ");
+                        // comm.append(" -loglevel quiet  -vcodec libx264 -c:a aac   ");
                     } else {
-                        comm.append(" -vcodec copy -acodec copy  ");
+                        //comm.append(" -vcodec copy -an ");//不处理音频
+                        comm.append(" -vcodec copy -c:a aac ");//不处理音频
+                        //comm.append(" -vcodec libx264 -c:a aac  ");
                     }
                     // 当twoPart为0时，只推一个元码流
                     if ("0".equals(twoPart)) {
