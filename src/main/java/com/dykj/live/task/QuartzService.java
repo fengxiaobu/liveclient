@@ -26,6 +26,7 @@ import java.util.*;
 
 /**
  * 同步数据  检查摄像头 同步信息 初始化云台
+ *
  * @author sjy
  */
 @Component
@@ -109,6 +110,7 @@ public class QuartzService {
                             String rtsp = v.getInput();
                             //是否开启
                             Boolean enable = v.getOpen();
+                            Boolean online = v.getOnline();
                             //传输协议
                             String transport = v.getTransport();
                             //接入协议
@@ -123,6 +125,7 @@ public class QuartzService {
                             map.put("name", name);
                             map.put("rtsp", rtsp);
                             map.put("enable", enable);
+                            map.put("online", online);
                             map.put("cdnid", cdnid);
                             map.put("transport", transport);
                             map.put("protocol", protocol);
@@ -162,8 +165,6 @@ public class QuartzService {
 
     /**
      * 同步登陆t-io服务器
-     *
-     *
      */
     @Scheduled(cron = "0 0/1 * * * ?")
     public void sysRegister() {

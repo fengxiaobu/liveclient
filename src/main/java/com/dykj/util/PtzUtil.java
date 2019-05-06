@@ -131,6 +131,7 @@ public class PtzUtil {
                 Profile profile = profs.get(0);
                 String token = profile.getToken();
                 PtzService ptzService = device.getPtzService();
+
                 //绝对移动
                 //ptzService.absoluteMove(token,1.0f,1.0f,0.0f);
                 if (StrUtil.equals("stop", command)) {

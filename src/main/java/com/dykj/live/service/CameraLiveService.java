@@ -58,4 +58,11 @@ public interface CameraLiveService {
      * @return
      */
     ResultData stop(String pushId);
+
+    /**
+     * @author: lpf
+     * @Date: 2019/5/5 17:43
+     * @Description:修改
+     */
+    ResultData edit(LiveInfoEntity liveInfo);
 }

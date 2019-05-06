@@ -135,9 +135,9 @@ function pushAppEdit(newMethod) {
         callback: function (result) {
             if (result) {
                 if (newMethod) {
-                    JsonAjax("POST", "live/push", param, newMethod);
+                    JsonAjax("POST", "live/edit", param, newMethod);
                 } else {
-                    JsonAjax("POST", "live/push", param, sucessPushApp);
+                    JsonAjax("POST", "live/edit", param, sucessPushApp);
                 }
             }
         }

@@ -89,6 +89,41 @@ public class CameraLiveServiceImpl implements CameraLiveService {
         return result;
     }
 
+    @Override
+    public ResultData edit(LiveInfoEntity liveInfo) {
+        ResultData result = new ResultData();
+        String appName = null;
+        if (liveInfo != null && liveInfo.getAppName() != null && liveInfo.getInput() != null
+                && liveInfo.getOutput() != null) {
+            if (ResultDataUtil.checkURLNoCN(liveInfo.getInput())
+                    && ResultDataUtil.checkURLNoCN(liveInfo.getOutput())) {
+                appName = liveInfo.getAppName();
+                if (StrUtil.equals("ONVIF", liveInfo.getProtocol()) && (StrUtil.isBlank(liveInfo.getIp()) || StrUtil.isBlank(liveInfo.getUsername()) || StrUtil.isBlank(liveInfo.getPassword()))) {
+                    ResultDataUtil.setData(result, "3", "发布应用失败：应用为ONVIF的时候IP,用户名,密码不能为空!", appName);
+                } else {
+                    if (StrUtil.isNotBlank(String.valueOf(liveInfo.getPushId()))) {
+                        stop(String.valueOf(liveInfo.getPushId()));
+                        remove(String.valueOf(liveInfo.getPushId()));
+                    }
+                    Map<String, Object> map = commandUtil.getMap4LiveInfo(liveInfo);
+                    //开启推送处理器
+                    pusher.push(map);
+                    // 存放信息
+                    liveInfo.setCdnid(getCdnId(liveInfo.getOutput()));
+                    liveInfo.setCreate_time(new Date());
+                    liveInfo.setUpdate_time(new Date());
+                    liveInfoEntityRepository.saveAndFlush(liveInfo);
+                    ResultDataUtil.setData(result, "0", "成功发布应用", map);
+                }
+            } else {
+                ResultDataUtil.setData(result, "3", "发布应用失败：应用非地址禁止使用特殊符号，空格，中文字符；地址可以包含/:@.?&=特殊字符", appName);
+            }
+        } else {
+            ResultDataUtil.setData(result, "1", "发布应用失败", appName);
+        }
+        return result;
+    }
+
     /**
      * 获取CdnID
      *
@@ -109,15 +144,21 @@ public class CameraLiveServiceImpl implements CameraLiveService {
     @Override
     public ResultData remove(String pushId) {
         ResultData result = new ResultData();
-        LiveInfoEntity infoEntity = liveInfoEntityRepository.findById(Long.valueOf(pushId)).get();
-        if (pushId != null && infoEntity != null) {
-            pusher.closePush(pushId);
-            ptzUtil.removeCameraPtzServer(infoEntity.getCdnid());
-            liveInfoEntityRepository.deleteById(Long.valueOf(pushId));
-            ResultDataUtil.setData(result, "0", "删除成功", "");
+        Optional<LiveInfoEntity> infoEntityOptional = liveInfoEntityRepository.findById(Long.valueOf(pushId));
+        if (infoEntityOptional.isPresent()) {
+            LiveInfoEntity infoEntity = infoEntityOptional.get();
+            if (pushId != null && infoEntity != null) {
+                pusher.closePush(pushId);
+                ptzUtil.removeCameraPtzServer(infoEntity.getCdnid());
+                liveInfoEntityRepository.deleteById(Long.valueOf(pushId));
+                ResultDataUtil.setData(result, "0", "删除成功", "");
+            } else {
+                ResultDataUtil.setData(result, "2", "非法操作或删除失败", "");
+            }
         } else {
-            ResultDataUtil.setData(result, "2", "非法操作或删除失败", "");
+            ResultDataUtil.setData(result, "0", "不存在", "");
         }
+
         return result;
     }
 

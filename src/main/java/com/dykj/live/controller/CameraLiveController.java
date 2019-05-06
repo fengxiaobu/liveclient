@@ -42,6 +42,12 @@ public class CameraLiveController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/edit", method = RequestMethod.POST)
+    public ResultData edit(LiveInfoEntity liveInfo) {
+        return cls.edit(liveInfo);
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/close/{pushId}", method = RequestMethod.DELETE)
     public ResultData close(@PathVariable("pushId") String pushId) {
         return cls.remove(pushId);
